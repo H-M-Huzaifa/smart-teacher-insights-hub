@@ -17,7 +17,6 @@ const Results = () => {
   const [results, setResults] = useState<EvaluationResult[]>([]);
   const [overallEngagement, setOverallEngagement] = useState<string>("");
   const [emotionPercentages, setEmotionPercentages] = useState<Record<string, number>>({});
-  const [maximumEmotion, setMaximumEmotion] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,14 +68,6 @@ const Results = () => {
     });
     
     setEmotionPercentages(emotions);
-    
-    // Find emotion with maximum percentage
-    const maxEmotion = Object.entries(emotions).reduce(
-      (max, [emotion, percentage]) => percentage > max.percentage ? { emotion, percentage } : max,
-      { emotion: '', percentage: 0 }
-    );
-    
-    setMaximumEmotion(maxEmotion.emotion);
     
   }, [navigate]);
 
@@ -187,36 +178,6 @@ const Results = () => {
             </TabsContent>
             
             <TabsContent value="detailed" className="animate-fade-in">
-              <Card className="shadow-md mb-6">
-                <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                  <CardTitle className="text-cecos">Dominant Emotion Analysis</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="text-center mb-4">
-                    <p className="text-lg mb-1">Maximum percentage emotion</p>
-                    <div className={`inline-block px-4 py-2 rounded text-lg font-semibold ${getEmotionColor(maximumEmotion)}`}>
-                      {maximumEmotion} ({emotionPercentages[maximumEmotion]}%)
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    {Object.entries(emotionPercentages).map(([emotion, percentage]) => (
-                      <div key={emotion} className="border rounded p-4 flex items-center justify-between">
-                        <span className={`px-2 py-1 rounded ${getEmotionColor(emotion)}`}>{emotion}</span>
-                        <div className="flex items-center">
-                          <div className="w-32 bg-gray-200 rounded-full h-2 mr-2">
-                            <div 
-                              className={`h-2 rounded-full ${emotion === 'Engaged' ? 'bg-green-500' : 'bg-red-500'}`}
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="font-medium">{percentage}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              
               <Card className="shadow-md">
                 <CardHeader className="bg-cecos bg-opacity-5 pb-2">
                   <CardTitle className="text-cecos">Timestamped Analysis</CardTitle>
