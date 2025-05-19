@@ -29,10 +29,17 @@ const Results = () => {
     }
     
     const parsedResults: EvaluationResult[] = JSON.parse(storedResults);
-    setResults(parsedResults);
+    
+    // Map any emotions to just "Bored" or "Engaged"
+    const mappedResults = parsedResults.map(result => ({
+      ...result,
+      dominantEmotion: mapToSimplifiedEmotion(result.dominantEmotion)
+    }));
+    
+    setResults(mappedResults);
     
     // Calculate overall engagement
-    const engagementLevels = parsedResults.map(r => r.engagementLevel);
+    const engagementLevels = mappedResults.map(r => r.engagementLevel);
     const highCount = engagementLevels.filter(level => level === 'High').length;
     const percentage = (highCount / engagementLevels.length) * 100;
     
@@ -46,23 +53,29 @@ const Results = () => {
       setOverallEngagement("Needs Improvement");
     }
     
-    // Calculate emotion percentages
-    const emotions: Record<string, number> = {};
-    parsedResults.forEach(result => {
-      if (emotions[result.dominantEmotion]) {
-        emotions[result.dominantEmotion]++;
-      } else {
-        emotions[result.dominantEmotion] = 1;
-      }
+    // Calculate simplified emotion percentages (only Bored and Engaged)
+    const emotions: Record<string, number> = {
+      "Engaged": 0,
+      "Bored": 0
+    };
+    
+    mappedResults.forEach(result => {
+      emotions[result.dominantEmotion]++;
     });
     
     Object.keys(emotions).forEach(emotion => {
-      emotions[emotion] = parseFloat(((emotions[emotion] / parsedResults.length) * 100).toFixed(1));
+      emotions[emotion] = parseFloat(((emotions[emotion] / mappedResults.length) * 100).toFixed(1));
     });
     
     setEmotionPercentages(emotions);
     
   }, [navigate]);
+
+  // Helper function to map any emotion to either "Bored" or "Engaged"
+  const mapToSimplifiedEmotion = (emotion: string): string => {
+    const engagedEmotions = ["Happy", "Interested", "Excited"];
+    return engagedEmotions.includes(emotion) ? "Engaged" : "Bored";
+  };
 
   const handleNewAnalysis = () => {
     localStorage.removeItem('evaluationResults');
@@ -79,14 +92,12 @@ const Results = () => {
     }
   };
   
-  // Helper function to get color based on emotion
+  // Helper function to get color based on emotion (simplified to just Bored and Engaged)
   const getEmotionColor = (emotion: string): string => {
     switch (emotion) {
-      case 'Happy': return 'bg-green-100 text-green-800';
-      case 'Interested': return 'bg-blue-100 text-blue-800';
-      case 'Confused': return 'bg-orange-100 text-orange-800';
-      case 'Neutral': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-purple-100 text-purple-800';
+      case 'Engaged': return 'bg-green-100 text-green-800';
+      case 'Bored': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
