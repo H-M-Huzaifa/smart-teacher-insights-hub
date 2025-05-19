@@ -15,7 +15,7 @@ interface EvaluationResult {
 
 const Results = () => {
   const [results, setResults] = useState<EvaluationResult[]>([]);
-  const [overallEngagement, setOverallEngagement] = useState<string>("");
+  const [dominantEmotion, setDominantEmotion] = useState<string>("");
   const [emotionPercentages, setEmotionPercentages] = useState<Record<string, number>>({});
   const navigate = useNavigate();
 
@@ -38,22 +38,7 @@ const Results = () => {
     
     setResults(mappedResults);
     
-    // Calculate overall engagement
-    const engagementLevels = mappedResults.map(r => r.engagementLevel);
-    const highCount = engagementLevels.filter(level => level === 'High').length;
-    const percentage = (highCount / engagementLevels.length) * 100;
-    
-    if (percentage > 70) {
-      setOverallEngagement("Excellent");
-    } else if (percentage > 50) {
-      setOverallEngagement("Good");
-    } else if (percentage > 30) {
-      setOverallEngagement("Average");
-    } else {
-      setOverallEngagement("Needs Improvement");
-    }
-    
-    // Calculate simplified emotion percentages (only Bored and Engaged)
+    // Calculate emotion percentages (only Bored and Engaged)
     const emotions: Record<string, number> = {
       "Engaged": 0,
       "Bored": 0
@@ -68,6 +53,19 @@ const Results = () => {
     });
     
     setEmotionPercentages(emotions);
+    
+    // Find the dominant emotion (the one with highest percentage)
+    let maxPercentage = 0;
+    let maxEmotion = "";
+    
+    Object.entries(emotions).forEach(([emotion, percentage]) => {
+      if (percentage > maxPercentage) {
+        maxPercentage = percentage;
+        maxEmotion = emotion;
+      }
+    });
+    
+    setDominantEmotion(maxEmotion);
     
   }, [navigate]);
 
@@ -129,8 +127,10 @@ const Results = () => {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <div className="text-4xl font-bold mb-4">{overallEngagement}</div>
-                      <p className="text-gray-600">Based on student emotions during the lecture</p>
+                      <div className={`text-4xl font-bold mb-4 ${getEmotionColor(dominantEmotion)} inline-block px-4 py-2 rounded-lg`}>
+                        {dominantEmotion}
+                      </div>
+                      <p className="text-gray-600">Dominant emotion across the entire lecture</p>
                     </div>
                   </CardContent>
                 </Card>
