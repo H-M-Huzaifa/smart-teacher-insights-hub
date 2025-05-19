@@ -17,6 +17,7 @@ const Results = () => {
   const [results, setResults] = useState<EvaluationResult[]>([]);
   const [dominantEmotion, setDominantEmotion] = useState<string>("");
   const [emotionPercentages, setEmotionPercentages] = useState<Record<string, number>>({});
+  const [engagementClassification, setEngagementClassification] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,6 +68,22 @@ const Results = () => {
     
     setDominantEmotion(maxEmotion);
     
+    // New logic for engagement classification based on engaged percentage
+    const engagedPercentage = emotions["Engaged"] || 0;
+    
+    // Apply the new classification thresholds
+    if (engagedPercentage > 80) {
+      setEngagementClassification("Extraordinary");
+    } else if (engagedPercentage > 60) {
+      setEngagementClassification("Very Good");
+    } else if (engagedPercentage > 50) {
+      setEngagementClassification("Good");
+    } else if (engagedPercentage > 40) {
+      setEngagementClassification("Fair");
+    } else {
+      setEngagementClassification("Not Satisfactory");
+    }
+    
   }, [navigate]);
 
   // Helper function to map any emotion to either "Bored" or "Engaged"
@@ -95,6 +112,18 @@ const Results = () => {
     switch (emotion) {
       case 'Engaged': return 'bg-green-100 text-green-800';
       case 'Bored': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  // Helper function to get color based on engagement classification
+  const getClassificationColor = (classification: string): string => {
+    switch (classification) {
+      case 'Extraordinary': return 'bg-indigo-100 text-indigo-800';
+      case 'Very Good': return 'bg-green-100 text-green-800';
+      case 'Good': return 'bg-blue-100 text-blue-800';
+      case 'Fair': return 'bg-yellow-100 text-yellow-800';
+      case 'Not Satisfactory': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -127,10 +156,10 @@ const Results = () => {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <div className={`text-4xl font-bold mb-4 ${getEmotionColor(dominantEmotion)} inline-block px-4 py-2 rounded-lg`}>
-                        {dominantEmotion}
+                      <div className={`text-4xl font-bold mb-4 ${getClassificationColor(engagementClassification)} inline-block px-4 py-2 rounded-lg`}>
+                        {engagementClassification}
                       </div>
-                      <p className="text-gray-600">Dominant emotion across the entire lecture</p>
+                      <p className="text-gray-600">Based on {emotionPercentages["Engaged"]}% engaged students</p>
                     </div>
                   </CardContent>
                 </Card>
