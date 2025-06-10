@@ -13,75 +13,63 @@ interface EvaluationResult {
   engagementLevel: string;
 }
 
+interface APIResults {
+  total_frames: number;
+  frames_processed: number;
+  faces_detected: number;
+  expressions_derived: number;
+  engaged: number;
+  not_engaged: number;
+  percent_engaged: number;
+  percent_not_engaged: number;
+  TES: number;
+  engagement_level: string;
+}
+
 const Results = () => {
   const [results, setResults] = useState<EvaluationResult[]>([]);
-  const [dominantEmotion, setDominantEmotion] = useState<string>("");
-  const [emotionPercentages, setEmotionPercentages] = useState<Record<string, number>>({});
-  const [engagementClassification, setEngagementClassification] = useState<string>("");
+  const [apiResults, setApiResults] = useState<APIResults | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     // In a real application, you would fetch this data from your API
     const storedResults = localStorage.getItem('evaluationResults');
+    const storedApiResults = localStorage.getItem('apiResults');
     
-    if (!storedResults) {
+    if (!storedResults && !storedApiResults) {
       navigate('/');
       return;
     }
     
-    const parsedResults: EvaluationResult[] = JSON.parse(storedResults);
-    
-    // Map any emotions to just "Bored" or "Engaged"
-    const mappedResults = parsedResults.map(result => ({
-      ...result,
-      dominantEmotion: mapToSimplifiedEmotion(result.dominantEmotion)
-    }));
-    
-    setResults(mappedResults);
-    
-    // Calculate emotion percentages (only Bored and Engaged)
-    const emotions: Record<string, number> = {
-      "Engaged": 0,
-      "Bored": 0
-    };
-    
-    mappedResults.forEach(result => {
-      emotions[result.dominantEmotion]++;
-    });
-    
-    Object.keys(emotions).forEach(emotion => {
-      emotions[emotion] = parseFloat(((emotions[emotion] / mappedResults.length) * 100).toFixed(1));
-    });
-    
-    setEmotionPercentages(emotions);
-    
-    // Find the dominant emotion (the one with highest percentage)
-    let maxPercentage = 0;
-    let maxEmotion = "";
-    
-    Object.entries(emotions).forEach(([emotion, percentage]) => {
-      if (percentage > maxPercentage) {
-        maxPercentage = percentage;
-        maxEmotion = emotion;
-      }
-    });
-    
-    setDominantEmotion(maxEmotion);
-    
-    // New logic for engagement classification based on engaged percentage
-    const engagedPercentage = emotions["Engaged"] || 0;
-    
-    // Apply the new classification thresholds
-    if (engagedPercentage > 80) {
-      setEngagementClassification("Extraordinary");
-    } else if (engagedPercentage > 60) {
-      setEngagementClassification("Very Good");
-    } else if (engagedPercentage > 50) {
-      setEngagementClassification("Good");
-    } else if (engagedPercentage > 40) {
-      setEngagementClassification("Fair");
+    // Handle legacy timestamped results if available
+    if (storedResults) {
+      const parsedResults: EvaluationResult[] = JSON.parse(storedResults);
+      const mappedResults = parsedResults.map(result => ({
+        ...result,
+        dominantEmotion: mapToSimplifiedEmotion(result.dominantEmotion)
+      }));
+      setResults(mappedResults);
+    }
+
+    // Handle new API results format
+    if (storedApiResults) {
+      const parsedApiResults: APIResults = JSON.parse(storedApiResults);
+      setApiResults(parsedApiResults);
     } else {
-      setEngagementClassification("Not Satisfactory");
+      // Create demo API results for testing
+      const demoApiResults: APIResults = {
+        total_frames: 1500,
+        frames_processed: 1450,
+        faces_detected: 1200,
+        expressions_derived: 1180,
+        engaged: 850,
+        not_engaged: 330,
+        percent_engaged: 72.03,
+        percent_not_engaged: 27.97,
+        TES: 7.2,
+        engagement_level: "Very Good"
+      };
+      setApiResults(demoApiResults);
     }
     
   }, [navigate]);
@@ -94,6 +82,7 @@ const Results = () => {
 
   const handleNewAnalysis = () => {
     localStorage.removeItem('evaluationResults');
+    localStorage.removeItem('apiResults');
     navigate('/');
   };
   
@@ -142,10 +131,11 @@ const Results = () => {
             </p>
           </section>
           
-          <Tabs defaultValue="summary" className="max-w-4xl mx-auto">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+          <Tabs defaultValue="summary" className="max-w-6xl mx-auto">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="detailed">Detailed Analysis</TabsTrigger>
+              <TabsTrigger value="metrics">Detailed Metrics</TabsTrigger>
+              <TabsTrigger value="timestamped">Timestamped Analysis</TabsTrigger>
             </TabsList>
             
             <TabsContent value="summary" className="animate-fade-in">
@@ -156,36 +146,52 @@ const Results = () => {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <div className={`text-4xl font-bold mb-4 ${getClassificationColor(engagementClassification)} inline-block px-4 py-2 rounded-lg`}>
-                        {engagementClassification}
+                      <div className={`text-4xl font-bold mb-4 ${getClassificationColor(apiResults?.engagement_level || "")} inline-block px-4 py-2 rounded-lg`}>
+                        {apiResults?.engagement_level}
                       </div>
-                      <p className="text-gray-600">Based on {emotionPercentages["Engaged"]}% engaged students</p>
+                      <p className="text-gray-600">Based on {apiResults?.percent_engaged}% engaged students</p>
+                      <div className="mt-4">
+                        <div className="text-2xl font-bold text-cecos">TES: {apiResults?.TES}</div>
+                        <p className="text-sm text-gray-500">Teacher Evaluation Score</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
                 
                 <Card className="shadow-md">
                   <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                    <CardTitle className="text-cecos">Dominant Emotions</CardTitle>
+                    <CardTitle className="text-cecos">Engagement Distribution</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="space-y-4">
-                      {Object.entries(emotionPercentages).map(([emotion, percentage], index) => (
-                        <div key={index} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className={`px-2 py-0.5 rounded ${getEmotionColor(emotion)}`}>
-                              {emotion}
-                            </span>
-                            <span className="font-medium">{percentage}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-cecos h-2 rounded-full" 
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="px-2 py-0.5 rounded bg-green-100 text-green-800">
+                            Engaged
+                          </span>
+                          <span className="font-medium">{apiResults?.percent_engaged}%</span>
                         </div>
-                      ))}
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full" 
+                            style={{ width: `${apiResults?.percent_engaged || 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="px-2 py-0.5 rounded bg-red-100 text-red-800">
+                            Not Engaged
+                          </span>
+                          <span className="font-medium">{apiResults?.percent_not_engaged}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-red-500 h-2 rounded-full" 
+                            style={{ width: `${apiResults?.percent_not_engaged || 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -205,43 +211,129 @@ const Results = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="metrics" className="animate-fade-in">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <Card className="shadow-md">
+                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+                    <CardTitle className="text-cecos text-lg">Processing Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Frames:</span>
+                        <span className="font-semibold">{apiResults?.total_frames}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Frames Processed:</span>
+                        <span className="font-semibold">{apiResults?.frames_processed}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Processing Rate:</span>
+                        <span className="font-semibold">
+                          {apiResults ? Math.round((apiResults.frames_processed / apiResults.total_frames) * 100) : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-md">
+                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+                    <CardTitle className="text-cecos text-lg">Detection Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Faces Detected:</span>
+                        <span className="font-semibold">{apiResults?.faces_detected}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Expressions Derived:</span>
+                        <span className="font-semibold">{apiResults?.expressions_derived}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Detection Rate:</span>
+                        <span className="font-semibold">
+                          {apiResults ? Math.round((apiResults.expressions_derived / apiResults.faces_detected) * 100) : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-md">
+                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+                    <CardTitle className="text-cecos text-lg">Engagement Counts</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Engaged:</span>
+                        <span className="font-semibold text-green-600">{apiResults?.engaged}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Not Engaged:</span>
+                        <span className="font-semibold text-red-600">{apiResults?.not_engaged}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total:</span>
+                        <span className="font-semibold">
+                          {(apiResults?.engaged || 0) + (apiResults?.not_engaged || 0)}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
             
-            <TabsContent value="detailed" className="animate-fade-in">
-              <Card className="shadow-md">
-                <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                  <CardTitle className="text-cecos">Timestamped Analysis</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-cecos bg-opacity-10">
-                          <th className="px-4 py-2 text-left">Timestamp</th>
-                          <th className="px-4 py-2 text-left">Dominant Emotion</th>
-                          <th className="px-4 py-2 text-left">Engagement Level</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {results.map((result, index) => (
-                          <tr key={index} className="border-b border-gray-200">
-                            <td className="px-4 py-3">{result.time}</td>
-                            <td className="px-4 py-3">
-                              <span className={`px-2 py-1 rounded text-sm ${getEmotionColor(result.dominantEmotion)}`}>
-                                {result.dominantEmotion}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className={`px-2 py-1 rounded text-sm ${getEngagementColor(result.engagementLevel)}`}>
-                                {result.engagementLevel}
-                              </span>
-                            </td>
+            <TabsContent value="timestamped" className="animate-fade-in">
+              {results.length > 0 ? (
+                <Card className="shadow-md">
+                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+                    <CardTitle className="text-cecos">Timestamped Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-cecos bg-opacity-10">
+                            <th className="px-4 py-2 text-left">Timestamp</th>
+                            <th className="px-4 py-2 text-left">Dominant Emotion</th>
+                            <th className="px-4 py-2 text-left">Engagement Level</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
+                        </thead>
+                        <tbody>
+                          {results.map((result, index) => (
+                            <tr key={index} className="border-b border-gray-200">
+                              <td className="px-4 py-3">{result.time}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-1 rounded text-sm ${getEmotionColor(result.dominantEmotion)}`}>
+                                  {result.dominantEmotion}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-1 rounded text-sm ${getEngagementColor(result.engagementLevel)}`}>
+                                  {result.engagementLevel}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="shadow-md">
+                  <CardContent className="pt-6">
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No timestamped data available</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
           
