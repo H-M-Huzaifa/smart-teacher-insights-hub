@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 const VideoUploader: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -11,9 +11,43 @@ const VideoUploader: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const navigate = useNavigate();
 
+  const validateVideoFile = (file: File): boolean => {
+    // Check file type
+    const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/quicktime', 'video/x-msvideo'];
+    if (!allowedTypes.includes(file.type)) {
+      return false;
+    }
+    
+    // Check file size (limit to 500MB)
+    const maxSize = 500 * 1024 * 1024; // 500MB in bytes
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Please select a video file smaller than 500MB.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      
+      if (!validateVideoFile(selectedFile)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select a valid video file (MP4, AVI, MOV).",
+          variant: "destructive"
+        });
+        // Reset the input
+        e.target.value = '';
+        return;
+      }
+      
+      setFile(selectedFile);
     }
   };
 
@@ -21,21 +55,26 @@ const VideoUploader: React.FC = () => {
     setIsUploading(true);
     setUploadProgress(0);
     
-    // Simulate progress updates
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 300);
+    // Simulate more realistic progress updates with varying speeds
+    const progressSteps = [5, 12, 18, 25, 35, 45, 52, 60, 68, 75, 82, 88, 92, 96, 100];
+    let currentStep = 0;
     
-    // Simulate API call
+    const updateProgress = () => {
+      if (currentStep < progressSteps.length) {
+        setUploadProgress(progressSteps[currentStep]);
+        currentStep++;
+        
+        // Vary the timing to make it more realistic
+        const delay = currentStep < 5 ? 800 : currentStep < 10 ? 1200 : 1500;
+        setTimeout(updateProgress, delay);
+      }
+    };
+    
+    updateProgress();
+    
+    // Simulate realistic API processing time (15-20 seconds)
     setTimeout(() => {
       setIsUploading(false);
-      clearInterval(interval);
       setUploadProgress(100);
       
       toast({
@@ -57,8 +96,8 @@ const VideoUploader: React.FC = () => {
       // Navigate to results page
       setTimeout(() => {
         navigate('/results');
-      }, 1000);
-    }, 4000);
+      }, 1500);
+    }, 18000); // 18 seconds total processing time
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,9 +112,38 @@ const VideoUploader: React.FC = () => {
       return;
     }
     
+    // Double-check file validation before upload
+    if (!validateVideoFile(file)) {
+      return;
+    }
+    
     // In a real application, you would send the file to your API
     // For now, let's simulate the upload and API processing
     simulateUpload();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const droppedFiles = e.dataTransfer.files;
+    
+    if (droppedFiles.length > 0) {
+      const droppedFile = droppedFiles[0];
+      
+      if (!validateVideoFile(droppedFile)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select a valid video file (MP4, AVI, MOV).",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setFile(droppedFile);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
   return (
@@ -95,11 +163,13 @@ const VideoUploader: React.FC = () => {
                 ${file ? 'border-cecos' : 'border-gray-300'} 
                 ${isUploading ? 'pulse-border' : ''}`}
               onClick={() => document.getElementById('video-upload')?.click()}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
             >
               <input
                 type="file"
                 id="video-upload"
-                accept="video/*"
+                accept="video/mp4,video/avi,video/mov,video/quicktime,video/x-msvideo"
                 className="hidden"
                 onChange={handleFileChange}
                 disabled={isUploading}
@@ -110,6 +180,7 @@ const VideoUploader: React.FC = () => {
                   <p className="text-cecos font-medium">Selected file:</p>
                   <p className="font-semibold">{file.name}</p>
                   <p className="text-sm text-gray-500">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  <p className="text-xs text-green-600">✓ Valid video file</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -128,7 +199,7 @@ const VideoUploader: React.FC = () => {
                   </svg>
                   <p className="text-lg font-medium">Drag and drop your video here</p>
                   <p className="text-sm text-gray-500">or click to browse files</p>
-                  <p className="text-xs text-gray-400 mt-2">Supported formats: MP4, AVI, MOV</p>
+                  <p className="text-xs text-gray-400 mt-2">Supported formats: MP4, AVI, MOV (Max 500MB)</p>
                 </div>
               )}
             </div>
@@ -143,7 +214,10 @@ const VideoUploader: React.FC = () => {
                 ></div>
               </div>
               <p className="text-sm text-gray-600 text-right">
-                {uploadProgress}% - Processing video...
+                {uploadProgress < 100 
+                  ? `${uploadProgress}% - ${uploadProgress < 30 ? 'Uploading video...' : uploadProgress < 70 ? 'Processing frames...' : 'Analyzing emotions...'}`
+                  : '100% - Analysis complete!'
+                }
               </p>
             </div>
           )}
