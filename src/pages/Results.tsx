@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -6,6 +5,8 @@ import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface EvaluationResult {
   time: string;
@@ -74,6 +75,35 @@ const Results = () => {
     
   }, [navigate]);
 
+  // Data for pie chart
+  const engagementPieData = [
+    { name: 'Engaged', value: apiResults?.engaged || 0, percentage: apiResults?.percent_engaged || 0 },
+    { name: 'Not Engaged', value: apiResults?.not_engaged || 0, percentage: apiResults?.percent_not_engaged || 0 }
+  ];
+
+  // Data for processing metrics bar chart
+  const processingData = [
+    { name: 'Total Frames', value: apiResults?.total_frames || 0 },
+    { name: 'Frames Processed', value: apiResults?.frames_processed || 0 },
+    { name: 'Faces Detected', value: apiResults?.faces_detected || 0 },
+    { name: 'Expressions Derived', value: apiResults?.expressions_derived || 0 }
+  ];
+
+  // Chart config
+  const chartConfig = {
+    engaged: {
+      label: "Engaged",
+      color: "#22c55e",
+    },
+    notEngaged: {
+      label: "Not Engaged", 
+      color: "#ef4444",
+    },
+  };
+
+  // Colors for pie chart
+  const COLORS = ['#22c55e', '#ef4444'];
+
   // Helper function to map any emotion to either "Bored" or "Engaged"
   const mapToSimplifiedEmotion = (emotion: string): string => {
     const engagedEmotions = ["Happy", "Interested", "Excited"];
@@ -132,8 +162,9 @@ const Results = () => {
           </section>
           
           <Tabs defaultValue="summary" className="max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="summary">Summary</TabsTrigger>
+              <TabsTrigger value="charts">Charts</TabsTrigger>
               <TabsTrigger value="metrics">Detailed Metrics</TabsTrigger>
               <TabsTrigger value="timestamped">Timestamped Analysis</TabsTrigger>
             </TabsList>
@@ -208,6 +239,102 @@ const Results = () => {
                     <li>Maintain teaching strategies that result in high interest and engagement</li>
                     <li>Consider incorporating more visual aids to enhance understanding</li>
                   </ul>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="charts" className="animate-fade-in">
+              <div className="grid md:grid-cols-2 gap-8 mb-8">
+                <Card className="shadow-md">
+                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+                    <CardTitle className="text-cecos">Engagement Distribution</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <ChartContainer
+                      config={chartConfig}
+                      className="h-[300px]"
+                    >
+                      <PieChart>
+                        <Pie
+                          data={engagementPieData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percentage }) => `${name}: ${percentage}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {engagementPieData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <ChartTooltip
+                          content={<ChartTooltipContent />}
+                        />
+                      </PieChart>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-md">
+                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+                    <CardTitle className="text-cecos">Processing Metrics</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <ChartContainer
+                      config={chartConfig}
+                      className="h-[300px]"
+                    >
+                      <BarChart data={processingData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={100}
+                          fontSize={12}
+                        />
+                        <YAxis />
+                        <ChartTooltip
+                          content={<ChartTooltipContent />}
+                        />
+                        <Bar dataKey="value" fill="#3b82f6" />
+                      </BarChart>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="shadow-md">
+                <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+                  <CardTitle className="text-cecos">Engagement vs Non-Engagement</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-[200px]"
+                  >
+                    <BarChart data={[
+                      { name: 'Engaged', count: apiResults?.engaged || 0, color: '#22c55e' },
+                      { name: 'Not Engaged', count: apiResults?.not_engaged || 0, color: '#ef4444' }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                      />
+                      <Bar dataKey="count" fill="#8884d8">
+                        {[
+                          { name: 'Engaged', count: apiResults?.engaged || 0, color: '#22c55e' },
+                          { name: 'Not Engaged', count: apiResults?.not_engaged || 0, color: '#ef4444' }
+                        ].map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ChartContainer>
                 </CardContent>
               </Card>
             </TabsContent>
