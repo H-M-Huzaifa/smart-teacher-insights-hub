@@ -51,71 +51,53 @@ const VideoUploader: React.FC = () => {
     }
   };
 
-  const uploadToAPI = async () => {
-    if (!file) return;
-    
+  const simulateUpload = () => {
     setIsUploading(true);
     setUploadProgress(0);
     
-    try {
-      // Create FormData for multipart/form-data upload
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Simulate progress during upload
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + Math.random() * 10;
-        });
-      }, 500);
-      
-      const response = await fetch('https://teacher-assesment.onrender.com/process/', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      clearInterval(progressInterval);
+    // Simulate more realistic progress updates with varying speeds
+    const progressSteps = [5, 12, 18, 25, 35, 45, 52, 60, 68, 75, 82, 88, 92, 96, 100];
+    let currentStep = 0;
+    
+    const updateProgress = () => {
+      if (currentStep < progressSteps.length) {
+        setUploadProgress(progressSteps[currentStep]);
+        currentStep++;
+        
+        // Vary the timing to make it more realistic
+        const delay = currentStep < 5 ? 800 : currentStep < 10 ? 1200 : 1500;
+        setTimeout(updateProgress, delay);
+      }
+    };
+    
+    updateProgress();
+    
+    // Simulate realistic API processing time (15-20 seconds)
+    setTimeout(() => {
+      setIsUploading(false);
       setUploadProgress(100);
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const apiResults = await response.json();
-      
-      // Store the API results in localStorage
-      localStorage.setItem('apiResults', JSON.stringify(apiResults));
-      
-      // Clear any old demo data
-      localStorage.removeItem('evaluationResults');
-      
       toast({
-        title: "Analysis Complete",
+        title: "Upload Complete",
         description: "Your video has been processed successfully.",
       });
       
-      // Navigate to results page after a short delay
+      // Store demo data for results page
+      const demoData = [
+        { time: "00:05", dominantEmotion: "Neutral", engagementLevel: "Medium" },
+        { time: "00:15", dominantEmotion: "Happy", engagementLevel: "High" },
+        { time: "00:30", dominantEmotion: "Confused", engagementLevel: "Low" },
+        { time: "00:45", dominantEmotion: "Interested", engagementLevel: "High" },
+        { time: "01:00", dominantEmotion: "Neutral", engagementLevel: "Medium" },
+      ];
+      
+      localStorage.setItem('evaluationResults', JSON.stringify(demoData));
+      
+      // Navigate to results page
       setTimeout(() => {
         navigate('/results');
       }, 1500);
-      
-    } catch (error) {
-      console.error('Upload failed:', error);
-      
-      toast({
-        title: "Upload Failed",
-        description: "There was an error processing your video. Please try again.",
-        variant: "destructive"
-      });
-      
-      setUploadProgress(0);
-    } finally {
-      setIsUploading(false);
-    }
+    }, 18000); // 18 seconds total processing time
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -135,7 +117,9 @@ const VideoUploader: React.FC = () => {
       return;
     }
     
-    uploadToAPI();
+    // In a real application, you would send the file to your API
+    // For now, let's simulate the upload and API processing
+    simulateUpload();
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -231,7 +215,7 @@ const VideoUploader: React.FC = () => {
               </div>
               <p className="text-sm text-gray-600 text-right">
                 {uploadProgress < 100 
-                  ? `${Math.round(uploadProgress)}% - ${uploadProgress < 30 ? 'Uploading video...' : uploadProgress < 70 ? 'Processing frames...' : 'Analyzing emotions...'}`
+                  ? `${uploadProgress}% - ${uploadProgress < 30 ? 'Uploading video...' : uploadProgress < 70 ? 'Processing frames...' : 'Analyzing emotions...'}`
                   : '100% - Analysis complete!'
                 }
               </p>
