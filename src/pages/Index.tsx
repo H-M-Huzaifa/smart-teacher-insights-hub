@@ -5,29 +5,35 @@ import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from "@/components/ui/card";
 
+const HERO_IMAGE_URL =
+  "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=900&q=80"; // people and video screens
+
 const Index = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
       <main className="flex-grow bg-gray-50">
         <div className="container mx-auto px-4 py-8">
-          <section className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-cecos mb-6 animate-slide-up">
-              Smart Teacher Evaluation System
-            </h2>
-            <Card className="max-w-4xl mx-auto shadow-md">
-              <CardContent className="p-6">
-                <p className="text-lg text-gray-700 leading-relaxed animate-fade-in">
-                  This project aims to revolutionize teacher assessment through the integration of digital 
-                  technologies. It focuses on real-time emotion recognition to evaluate and enhance teacher 
-                  performance. The project will utilize real-time face detection using YOLOv7. It will also use 
-                  student emotion recognition. This employs the Inception v3 convolutional neural network to assess 
-                  teacher effectiveness based on student engagement levels. The study will provide continuous 
-                  feedback and professional development opportunities for educators. It emphasizes the importance 
-                  of continuous assessment in the digital era.
+          {/* Hero section */}
+          <section className="mb-12">
+            <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8">
+              <div className="w-full md:w-1/2 text-center md:text-left animate-slide-up">
+                <h1 className="text-4xl md:text-5xl font-bold text-cecos mb-4 leading-tight">
+                  Smart Teacher Evaluation System
+                </h1>
+                <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                  Revolutionizing teacher assessment with AI-powered emotion recognition and real-time engagement analysis in the digital classroom.
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="w-full md:w-1/2 flex justify-center md:justify-end mb-8 md:mb-0 animate-fade-in">
+                <img
+                  src={HERO_IMAGE_URL}
+                  alt="Classroom video analysis illustration"
+                  className="rounded-xl shadow-lg object-cover w-[340px] h-[210px] md:w-[410px] md:h-[260px] border-4 border-cecos-light bg-white"
+                  loading="eager"
+                />
+              </div>
+            </div>
           </section>
           
           <section className="mb-10">
