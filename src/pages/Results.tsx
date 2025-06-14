@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Trophy, TrendingUp, Users, Brain, BarChart3, Clock, Target, Award } from 'lucide-react';
 
 interface EvaluationResult {
   time: string;
@@ -42,7 +44,6 @@ const Results = () => {
       return;
     }
     
-    // Handle legacy timestamped results if available
     if (storedResults) {
       const parsedResults: EvaluationResult[] = JSON.parse(storedResults);
       const mappedResults = parsedResults.map(result => ({
@@ -52,12 +53,10 @@ const Results = () => {
       setResults(mappedResults);
     }
 
-    // Handle new API results format
     if (storedApiResults) {
       const parsedApiResults: APIResults = JSON.parse(storedApiResults);
       setApiResults(parsedApiResults);
     } else {
-      // Create demo API results for testing
       const demoApiResults: APIResults = {
         total_frames: 1500,
         frames_processed: 1450,
@@ -72,7 +71,6 @@ const Results = () => {
       };
       setApiResults(demoApiResults);
     }
-    
   }, [navigate]);
 
   // Data for pie chart
@@ -81,7 +79,6 @@ const Results = () => {
     { name: 'Not Engaged', value: apiResults?.not_engaged || 0, percentage: apiResults?.percent_not_engaged || 0 }
   ];
 
-  // Data for processing metrics bar chart
   const processingData = [
     { name: 'Total Frames', value: apiResults?.total_frames || 0 },
     { name: 'Frames Processed', value: apiResults?.frames_processed || 0 },
@@ -89,7 +86,6 @@ const Results = () => {
     { name: 'Expressions Derived', value: apiResults?.expressions_derived || 0 }
   ];
 
-  // Chart config
   const chartConfig = {
     engaged: {
       label: "Engaged",
@@ -101,10 +97,8 @@ const Results = () => {
     },
   };
 
-  // Colors for pie chart
   const COLORS = ['#22c55e', '#ef4444'];
 
-  // Helper function to map any emotion to either "Bored" or "Engaged"
   const mapToSimplifiedEmotion = (emotion: string): string => {
     const engagedEmotions = ["Happy", "Interested", "Excited"];
     return engagedEmotions.includes(emotion) ? "Engaged" : "Bored";
@@ -116,109 +110,187 @@ const Results = () => {
     navigate('/');
   };
   
-  // Helper function to get color based on engagement level
   const getEngagementColor = (level: string): string => {
     switch (level) {
-      case 'High': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Low': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'High': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Medium': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Low': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
   
-  // Helper function to get color based on emotion (simplified to just Bored and Engaged)
   const getEmotionColor = (emotion: string): string => {
     switch (emotion) {
-      case 'Engaged': return 'bg-green-100 text-green-800';
-      case 'Bored': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Engaged': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Bored': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
   
-  // Helper function to get color based on engagement classification
   const getClassificationColor = (classification: string): string => {
     switch (classification) {
-      case 'Extraordinary': return 'bg-indigo-100 text-indigo-800';
-      case 'Very Good': return 'bg-green-100 text-green-800';
-      case 'Good': return 'bg-blue-100 text-blue-800';
-      case 'Fair': return 'bg-yellow-100 text-yellow-800';
-      case 'Not Satisfactory': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Extraordinary': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'Very Good': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Good': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Fair': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Not Satisfactory': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       <NavBar />
-      <main className="flex-grow bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <section className="mb-8 text-center">
-            <h2 className="text-3xl font-bold text-cecos mb-2 animate-slide-up">
-              Evaluation Results
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Below are the results of the student emotion analysis from your uploaded lecture video
+      <main className="flex-grow">
+        <div className="container mx-auto px-4 py-12">
+          {/* Hero Section */}
+          <section className="mb-12 text-center">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-gradient-to-r from-cecos to-cecos-light p-3 rounded-full shadow-lg">
+                <BarChart3 className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 animate-slide-up">
+              Student Engagement Analysis
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Comprehensive insights into student engagement patterns and emotional responses during your lecture
             </p>
           </section>
+
+          {/* Key Metrics Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-emerald-600 text-sm font-medium">Engagement Rate</p>
+                    <p className="text-3xl font-bold text-emerald-800">{apiResults?.percent_engaged}%</p>
+                  </div>
+                  <div className="bg-emerald-200 p-3 rounded-full">
+                    <TrendingUp className="h-6 w-6 text-emerald-700" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-600 text-sm font-medium">TES Score</p>
+                    <p className="text-3xl font-bold text-blue-800">{apiResults?.TES}</p>
+                  </div>
+                  <div className="bg-blue-200 p-3 rounded-full">
+                    <Award className="h-6 w-6 text-blue-700" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-600 text-sm font-medium">Students Analyzed</p>
+                    <p className="text-3xl font-bold text-purple-800">{(apiResults?.engaged || 0) + (apiResults?.not_engaged || 0)}</p>
+                  </div>
+                  <div className="bg-purple-200 p-3 rounded-full">
+                    <Users className="h-6 w-6 text-purple-700" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-amber-600 text-sm font-medium">Overall Rating</p>
+                    <p className="text-xl font-bold text-amber-800">{apiResults?.engagement_level}</p>
+                  </div>
+                  <div className="bg-amber-200 p-3 rounded-full">
+                    <Trophy className="h-6 w-6 text-amber-700" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
           
-          <Tabs defaultValue="summary" className="max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
-              <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="charts">Charts</TabsTrigger>
-              <TabsTrigger value="metrics">Detailed Metrics</TabsTrigger>
-              <TabsTrigger value="timestamped">Timestamped Analysis</TabsTrigger>
+          <Tabs defaultValue="summary" className="max-w-7xl mx-auto">
+            <TabsList className="grid w-full grid-cols-4 mb-8 bg-white shadow-md border-0 p-1 rounded-xl">
+              <TabsTrigger value="summary" className="data-[state=active]:bg-cecos data-[state=active]:text-white rounded-lg font-medium">
+                Summary
+              </TabsTrigger>
+              <TabsTrigger value="charts" className="data-[state=active]:bg-cecos data-[state=active]:text-white rounded-lg font-medium">
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger value="metrics" className="data-[state=active]:bg-cecos data-[state=active]:text-white rounded-lg font-medium">
+                Metrics
+              </TabsTrigger>
+              <TabsTrigger value="timestamped" className="data-[state=active]:bg-cecos data-[state=active]:text-white rounded-lg font-medium">
+                Timeline
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="summary" className="animate-fade-in">
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                <Card className="shadow-md">
-                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                    <CardTitle className="text-cecos">Overall Engagement</CardTitle>
+              <div className="grid lg:grid-cols-2 gap-8 mb-8">
+                <Card className="border-0 shadow-xl bg-white">
+                  <CardHeader className="bg-gradient-to-r from-cecos/5 to-cecos/10 border-b border-cecos/10">
+                    <CardTitle className="text-cecos flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Overall Performance
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
+                  <CardContent className="p-8">
                     <div className="text-center">
-                      <div className={`text-4xl font-bold mb-4 ${getClassificationColor(apiResults?.engagement_level || "")} inline-block px-4 py-2 rounded-lg`}>
+                      <div className={`text-4xl font-bold mb-6 ${getClassificationColor(apiResults?.engagement_level || "")} border-2 inline-block px-6 py-3 rounded-xl`}>
                         {apiResults?.engagement_level}
                       </div>
-                      <p className="text-gray-600">Based on {apiResults?.percent_engaged}% engaged students</p>
-                      <div className="mt-4">
-                        <div className="text-2xl font-bold text-cecos">TES: {apiResults?.TES}</div>
-                        <p className="text-sm text-gray-500">Teacher Evaluation Score</p>
+                      <p className="text-gray-600 text-lg mb-6">
+                        Based on <span className="font-semibold text-cecos">{apiResults?.percent_engaged}%</span> engaged students
+                      </p>
+                      <div className="bg-gradient-to-r from-cecos/5 to-cecos/10 p-6 rounded-xl">
+                        <div className="text-3xl font-bold text-cecos mb-2">TES: {apiResults?.TES}</div>
+                        <p className="text-cecos/70 font-medium">Teacher Evaluation Score</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card className="shadow-md">
-                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                    <CardTitle className="text-cecos">Engagement Distribution</CardTitle>
+                <Card className="border-0 shadow-xl bg-white">
+                  <CardHeader className="bg-gradient-to-r from-cecos/5 to-cecos/10 border-b border-cecos/10">
+                    <CardTitle className="text-cecos flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Engagement Breakdown
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="px-2 py-0.5 rounded bg-green-100 text-green-800">
-                            Engaged
+                  <CardContent className="p-8">
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium border border-emerald-200">
+                            Engaged Students
                           </span>
-                          <span className="font-medium">{apiResults?.percent_engaged}%</span>
+                          <span className="font-bold text-2xl text-emerald-700">{apiResults?.percent_engaged}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-3">
                           <div 
-                            className="bg-green-500 h-2 rounded-full" 
+                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-3 rounded-full shadow-sm" 
                             style={{ width: `${apiResults?.percent_engaged || 0}%` }}
                           ></div>
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="px-2 py-0.5 rounded bg-red-100 text-red-800">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 font-medium border border-red-200">
                             Not Engaged
                           </span>
-                          <span className="font-medium">{apiResults?.percent_not_engaged}%</span>
+                          <span className="font-bold text-2xl text-red-700">{apiResults?.percent_not_engaged}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-3">
                           <div 
-                            className="bg-red-500 h-2 rounded-full" 
+                            className="bg-gradient-to-r from-red-500 to-red-600 h-3 rounded-full shadow-sm" 
                             style={{ width: `${apiResults?.percent_not_engaged || 0}%` }}
                           ></div>
                         </div>
@@ -228,31 +300,56 @@ const Results = () => {
                 </Card>
               </div>
               
-              <Card className="shadow-md mb-8">
-                <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                  <CardTitle className="text-cecos">Recommendations</CardTitle>
+              <Card className="border-0 shadow-xl bg-white mb-8">
+                <CardHeader className="bg-gradient-to-r from-cecos/5 to-cecos/10 border-b border-cecos/10">
+                  <CardTitle className="text-cecos flex items-center gap-2">
+                    <Brain className="h-5 w-5" />
+                    AI-Powered Recommendations
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <ul className="list-disc list-inside space-y-3 text-gray-700">
-                    <li>Increase interactive elements during sections where engagement is low</li>
-                    <li>Consider revisiting concepts when confusion levels are high</li>
-                    <li>Maintain teaching strategies that result in high interest and engagement</li>
-                    <li>Consider incorporating more visual aids to enhance understanding</li>
-                  </ul>
+                <CardContent className="p-8">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-lg text-gray-800 mb-3">Improvement Strategies</h4>
+                      <ul className="space-y-3">
+                        <li className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                          <span className="text-gray-700">Increase interactive elements during low-engagement periods</span>
+                        </li>
+                        <li className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                          <span className="text-gray-700">Maintain current strategies that drive high engagement</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-lg text-gray-800 mb-3">Content Enhancement</h4>
+                      <ul className="space-y-3">
+                        <li className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                          <span className="text-gray-700">Incorporate more visual aids to enhance understanding</span>
+                        </li>
+                        <li className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                          <div className="w-2 h-2 bg-amber-500 rounded-full mt-2"></div>
+                          <span className="text-gray-700">Review complex concepts when confusion levels are high</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
             <TabsContent value="charts" className="animate-fade-in">
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                <Card className="shadow-md">
-                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+              <div className="grid lg:grid-cols-2 gap-8 mb-8">
+                <Card className="border-0 shadow-xl bg-white">
+                  <CardHeader className="bg-gradient-to-r from-cecos/5 to-cecos/10 border-b border-cecos/10">
                     <CardTitle className="text-cecos">Engagement Distribution</CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
+                  <CardContent className="p-8">
                     <ChartContainer
                       config={chartConfig}
-                      className="h-[300px]"
+                      className="h-[350px]"
                     >
                       <PieChart>
                         <Pie
@@ -261,7 +358,7 @@ const Results = () => {
                           cy="50%"
                           labelLine={false}
                           label={({ name, percentage }) => `${name}: ${percentage}%`}
-                          outerRadius={80}
+                          outerRadius={100}
                           fill="#8884d8"
                           dataKey="value"
                         >
@@ -277,14 +374,14 @@ const Results = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-md">
-                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
+                <Card className="border-0 shadow-xl bg-white">
+                  <CardHeader className="bg-gradient-to-r from-cecos/5 to-cecos/10 border-b border-cecos/10">
                     <CardTitle className="text-cecos">Processing Metrics</CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
+                  <CardContent className="p-8">
                     <ChartContainer
                       config={chartConfig}
-                      className="h-[300px]"
+                      className="h-[350px]"
                     >
                       <BarChart data={processingData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -299,21 +396,21 @@ const Results = () => {
                         <ChartTooltip
                           content={<ChartTooltipContent />}
                         />
-                        <Bar dataKey="value" fill="#3b82f6" />
+                        <Bar dataKey="value" fill="#7D1D1C" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ChartContainer>
                   </CardContent>
                 </Card>
               </div>
 
-              <Card className="shadow-md">
-                <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                  <CardTitle className="text-cecos">Engagement vs Non-Engagement</CardTitle>
+              <Card className="border-0 shadow-xl bg-white">
+                <CardHeader className="bg-gradient-to-r from-cecos/5 to-cecos/10 border-b border-cecos/10">
+                  <CardTitle className="text-cecos">Engagement Comparison</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="p-8">
                   <ChartContainer
                     config={chartConfig}
-                    className="h-[200px]"
+                    className="h-[250px]"
                   >
                     <BarChart data={[
                       { name: 'Engaged', count: apiResults?.engaged || 0, color: '#22c55e' },
@@ -325,7 +422,7 @@ const Results = () => {
                       <ChartTooltip
                         content={<ChartTooltipContent />}
                       />
-                      <Bar dataKey="count" fill="#8884d8">
+                      <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]}>
                         {[
                           { name: 'Engaged', count: apiResults?.engaged || 0, color: '#22c55e' },
                           { name: 'Not Engaged', count: apiResults?.not_engaged || 0, color: '#ef4444' }
@@ -341,23 +438,26 @@ const Results = () => {
 
             <TabsContent value="metrics" className="animate-fade-in">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <Card className="shadow-md">
-                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                    <CardTitle className="text-cecos text-lg">Processing Stats</CardTitle>
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50 to-blue-100">
+                  <CardHeader className="bg-gradient-to-r from-blue-600/10 to-blue-700/10 border-b border-blue-200">
+                    <CardTitle className="text-blue-800 text-lg flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      Processing Stats
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Frames:</span>
-                        <span className="font-semibold">{apiResults?.total_frames}</span>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-blue-700 font-medium">Total Frames:</span>
+                        <span className="font-bold text-blue-800 text-lg">{apiResults?.total_frames?.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Frames Processed:</span>
-                        <span className="font-semibold">{apiResults?.frames_processed}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-blue-700 font-medium">Frames Processed:</span>
+                        <span className="font-bold text-blue-800 text-lg">{apiResults?.frames_processed?.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Processing Rate:</span>
-                        <span className="font-semibold">
+                      <div className="flex justify-between items-center">
+                        <span className="text-blue-700 font-medium">Processing Rate:</span>
+                        <span className="font-bold text-blue-800 text-lg">
                           {apiResults ? Math.round((apiResults.frames_processed / apiResults.total_frames) * 100) : 0}%
                         </span>
                       </div>
@@ -365,23 +465,26 @@ const Results = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-md">
-                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                    <CardTitle className="text-cecos text-lg">Detection Stats</CardTitle>
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-50 to-purple-100">
+                  <CardHeader className="bg-gradient-to-r from-purple-600/10 to-purple-700/10 border-b border-purple-200">
+                    <CardTitle className="text-purple-800 text-lg flex items-center gap-2">
+                      <Brain className="h-5 w-5" />
+                      Detection Stats
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Faces Detected:</span>
-                        <span className="font-semibold">{apiResults?.faces_detected}</span>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-purple-700 font-medium">Faces Detected:</span>
+                        <span className="font-bold text-purple-800 text-lg">{apiResults?.faces_detected?.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Expressions Derived:</span>
-                        <span className="font-semibold">{apiResults?.expressions_derived}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-purple-700 font-medium">Expressions Derived:</span>
+                        <span className="font-bold text-purple-800 text-lg">{apiResults?.expressions_derived?.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Detection Rate:</span>
-                        <span className="font-semibold">
+                      <div className="flex justify-between items-center">
+                        <span className="text-purple-700 font-medium">Detection Rate:</span>
+                        <span className="font-bold text-purple-800 text-lg">
                           {apiResults ? Math.round((apiResults.expressions_derived / apiResults.faces_detected) * 100) : 0}%
                         </span>
                       </div>
@@ -389,24 +492,27 @@ const Results = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-md">
-                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                    <CardTitle className="text-cecos text-lg">Engagement Counts</CardTitle>
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 to-emerald-100">
+                  <CardHeader className="bg-gradient-to-r from-emerald-600/10 to-emerald-700/10 border-b border-emerald-200">
+                    <CardTitle className="text-emerald-800 text-lg flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Engagement Counts
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Engaged:</span>
-                        <span className="font-semibold text-green-600">{apiResults?.engaged}</span>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-emerald-700 font-medium">Engaged:</span>
+                        <span className="font-bold text-emerald-800 text-lg">{apiResults?.engaged?.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Not Engaged:</span>
-                        <span className="font-semibold text-red-600">{apiResults?.not_engaged}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-emerald-700 font-medium">Not Engaged:</span>
+                        <span className="font-bold text-red-600 text-lg">{apiResults?.not_engaged?.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total:</span>
-                        <span className="font-semibold">
-                          {(apiResults?.engaged || 0) + (apiResults?.not_engaged || 0)}
+                      <div className="flex justify-between items-center">
+                        <span className="text-emerald-700 font-medium">Total:</span>
+                        <span className="font-bold text-emerald-800 text-lg">
+                          {((apiResults?.engaged || 0) + (apiResults?.not_engaged || 0)).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -417,31 +523,34 @@ const Results = () => {
             
             <TabsContent value="timestamped" className="animate-fade-in">
               {results.length > 0 ? (
-                <Card className="shadow-md">
-                  <CardHeader className="bg-cecos bg-opacity-5 pb-2">
-                    <CardTitle className="text-cecos">Timestamped Analysis</CardTitle>
+                <Card className="border-0 shadow-xl bg-white">
+                  <CardHeader className="bg-gradient-to-r from-cecos/5 to-cecos/10 border-b border-cecos/10">
+                    <CardTitle className="text-cecos flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      Timestamped Analysis
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
+                  <CardContent className="p-8">
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse">
                         <thead>
-                          <tr className="bg-cecos bg-opacity-10">
-                            <th className="px-4 py-2 text-left">Timestamp</th>
-                            <th className="px-4 py-2 text-left">Dominant Emotion</th>
-                            <th className="px-4 py-2 text-left">Engagement Level</th>
+                          <tr className="bg-gradient-to-r from-cecos/10 to-cecos/5">
+                            <th className="px-6 py-4 text-left font-semibold text-cecos">Timestamp</th>
+                            <th className="px-6 py-4 text-left font-semibold text-cecos">Dominant Emotion</th>
+                            <th className="px-6 py-4 text-left font-semibold text-cecos">Engagement Level</th>
                           </tr>
                         </thead>
                         <tbody>
                           {results.map((result, index) => (
-                            <tr key={index} className="border-b border-gray-200">
-                              <td className="px-4 py-3">{result.time}</td>
-                              <td className="px-4 py-3">
-                                <span className={`px-2 py-1 rounded text-sm ${getEmotionColor(result.dominantEmotion)}`}>
+                            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 font-medium text-gray-800">{result.time}</td>
+                              <td className="px-6 py-4">
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getEmotionColor(result.dominantEmotion)}`}>
                                   {result.dominantEmotion}
                                 </span>
                               </td>
-                              <td className="px-4 py-3">
-                                <span className={`px-2 py-1 rounded text-sm ${getEngagementColor(result.engagementLevel)}`}>
+                              <td className="px-6 py-4">
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getEngagementColor(result.engagementLevel)}`}>
                                   {result.engagementLevel}
                                 </span>
                               </td>
@@ -453,10 +562,12 @@ const Results = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="shadow-md">
-                  <CardContent className="pt-6">
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">No timestamped data available</p>
+                <Card className="border-0 shadow-xl bg-white">
+                  <CardContent className="p-12">
+                    <div className="text-center">
+                      <Clock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 text-lg">No timestamped data available</p>
+                      <p className="text-gray-400 text-sm mt-2">Upload a new video to see detailed timeline analysis</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -464,10 +575,10 @@ const Results = () => {
             </TabsContent>
           </Tabs>
           
-          <div className="text-center mt-10">
+          <div className="text-center mt-12">
             <Button 
               onClick={handleNewAnalysis}
-              className="bg-cecos hover:bg-cecos-light text-white"
+              className="bg-gradient-to-r from-cecos to-cecos-light hover:from-cecos-light hover:to-cecos text-white font-semibold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               Analyze Another Video
             </Button>
