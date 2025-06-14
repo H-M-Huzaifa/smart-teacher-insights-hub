@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Card, CardContent } from "@/components/ui/card";
 
 const HERO_IMAGE_URL =
-  "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=900&q=80"; // people and video screens
+  "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=900&q=80"; // classroom with students and teacher
 
 const Index = () => {
   return (
@@ -28,7 +28,7 @@ const Index = () => {
               <div className="w-full md:w-1/2 flex justify-center md:justify-end mb-8 md:mb-0 animate-fade-in">
                 <img
                   src={HERO_IMAGE_URL}
-                  alt="Classroom video analysis illustration"
+                  alt="Classroom with teacher and students illustration"
                   className="rounded-xl shadow-lg object-cover w-[340px] h-[210px] md:w-[410px] md:h-[260px] border-4 border-cecos-light bg-white"
                   loading="eager"
                 />
