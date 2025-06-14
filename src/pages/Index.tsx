@@ -1,4 +1,3 @@
-
 import React from 'react';
 import VideoUploader from '@/components/VideoUploader';
 import NavBar from '@/components/NavBar';
@@ -6,7 +5,7 @@ import Footer from '@/components/Footer';
 import { Card, CardContent } from "@/components/ui/card";
 
 const HERO_IMAGE_URL =
-  "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=900&q=80"; // classroom with students and teacher
+  "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=900&q=80"; // group of people around video screens showing emotion recognition
 
 const Index = () => {
   return (
@@ -48,7 +47,7 @@ const Index = () => {
                   <div className="absolute -inset-4 bg-gradient-to-r from-cecos to-cecos-light rounded-2xl blur opacity-20"></div>
                   <img
                     src={HERO_IMAGE_URL}
-                    alt="Classroom with teacher and students illustration"
+                    alt="Students emotion recognition analysis with video screens display"
                     className="relative rounded-2xl shadow-2xl object-cover w-[380px] h-[240px] lg:w-[480px] lg:h-[300px] border border-white"
                     loading="eager"
                   />
