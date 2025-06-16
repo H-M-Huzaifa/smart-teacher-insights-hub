@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +9,25 @@ const VideoUploader: React.FC = () => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const navigate = useNavigate();
+
+  const extractVideoName = (fileName: string): string => {
+    // Remove file extension
+    const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, '');
+    
+    // Check for VidA, VidB, VidC (case insensitive)
+    const lowerName = nameWithoutExtension.toLowerCase();
+    
+    if (lowerName.includes('vida')) {
+      return 'VidA';
+    } else if (lowerName.includes('vidb')) {
+      return 'VidB';
+    } else if (lowerName.includes('vidc')) {
+      return 'VidC';
+    }
+    
+    // Return original name if not a special video
+    return nameWithoutExtension;
+  };
 
   const validateVideoFile = (file: File): boolean => {
     // Check file type
@@ -81,6 +99,10 @@ const VideoUploader: React.FC = () => {
         title: "Upload Complete",
         description: "Your video has been processed successfully.",
       });
+      
+      // Extract video name and store it
+      const videoName = extractVideoName(file!.name);
+      localStorage.setItem('uploadedVideoName', videoName);
       
       // Store demo data for results page
       const demoData = [
@@ -181,6 +203,9 @@ const VideoUploader: React.FC = () => {
                   <p className="font-semibold">{file.name}</p>
                   <p className="text-sm text-gray-500">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                   <p className="text-xs text-green-600">✓ Valid video file</p>
+                  {['VidA', 'VidB', 'VidC'].includes(extractVideoName(file.name)) && (
+                    <p className="text-xs text-blue-600">✓ Recognized as {extractVideoName(file.name)}</p>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2">
