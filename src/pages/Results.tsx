@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -36,11 +35,11 @@ const Results = () => {
 
   const generateTimestampData = (videoDuration: number, engagementRate: number) => {
     const timestamps = [];
-    const intervalMinutes = Math.max(1, Math.floor(videoDuration / 10)); // Create ~10 data points
+    const intervalSeconds = Math.max(5, Math.floor(videoDuration / 8)); // Create ~8 data points with 5-second intervals
     
-    for (let i = 0; i < videoDuration; i += intervalMinutes) {
-      const minutes = Math.floor(i);
-      const seconds = Math.floor((i % 1) * 60);
+    for (let i = 0; i < videoDuration; i += intervalSeconds) {
+      const minutes = Math.floor(i / 60);
+      const seconds = Math.floor(i % 60);
       const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       
       // Vary engagement based on time and overall rate
@@ -61,28 +60,28 @@ const Results = () => {
     switch (videoName) {
       case 'VidA':
         return {
-          duration: 18.15, // 18min 9sec
+          duration: 45, // 45 seconds
           engagementRate: 41,
           tes: 4.1,
           level: "Fair"
         };
       case 'VidB':
         return {
-          duration: 4.43, // 4min 26sec
+          duration: 38, // 38 seconds
           engagementRate: 67,
           tes: 6.7,
           level: "Good"
         };
       case 'VidC':
         return {
-          duration: 17.18, // 17min 11sec
+          duration: 52, // 52 seconds
           engagementRate: 58,
           tes: 5.8,
           level: "Good"
         };
       default:
         return {
-          duration: 18.15,
+          duration: 45,
           engagementRate: 41,
           tes: 4.1,
           level: "Fair"
@@ -238,7 +237,7 @@ const Results = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-600 text-sm font-medium">Students Analyzed</p>
+                    <p className="text-purple-600 text-sm font-medium">Emotion Analyzed</p>
                     <p className="text-3xl font-bold text-purple-800">{(apiResults?.engaged || 0) + (apiResults?.not_engaged || 0)}</p>
                   </div>
                   <div className="bg-purple-200 p-3 rounded-full">
