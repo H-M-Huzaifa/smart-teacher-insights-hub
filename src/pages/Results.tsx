@@ -35,22 +35,47 @@ const Results = () => {
 
   const generateTimestampData = (videoDuration: number, engagementRate: number) => {
     const timestamps = [];
-    const intervalSeconds = Math.max(5, Math.floor(videoDuration / 8)); // Create ~8 data points with 5-second intervals
     
-    for (let i = 0; i < videoDuration; i += intervalSeconds) {
-      const minutes = Math.floor(i / 60);
-      const seconds = Math.floor(i % 60);
-      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    // Frame skipping parameters
+    const SKIP_FRAMES = 5;
+    const segment_duration = 10; // seconds
+    const num_segments = 3;
+    const fps = 30; // assuming 30 fps
+    
+    // Calculate actual segments based on frame skipping logic
+    const segment_frames = Math.floor(fps * segment_duration);
+    const totalSegmentDuration = num_segments * segment_duration;
+    
+    // Ensure we don't exceed video duration
+    const effectiveDuration = Math.min(videoDuration, totalSegmentDuration);
+    
+    for (let segment = 0; segment < num_segments && segment * segment_duration < effectiveDuration; segment++) {
+      const segmentStartTime = segment * segment_duration;
       
-      // Vary engagement based on time and overall rate
-      const variation = Math.sin(i * 0.1) * 0.3 + (Math.random() - 0.5) * 0.4;
-      const isEngaged = (engagementRate / 100 + variation) > 0.5;
+      // Create timestamps within each segment, accounting for frame skipping
+      const timestampsPerSegment = Math.floor(segment_frames / (SKIP_FRAMES + 1)); // +1 because we process 1 frame then skip SKIP_FRAMES
       
-      timestamps.push({
-        time: timeString,
-        dominantEmotion: isEngaged ? "Engaged" : "Not Engaged",
-        engagementLevel: isEngaged ? "High" : "Low"
-      });
+      for (let i = 0; i < timestampsPerSegment && segmentStartTime < effectiveDuration; i++) {
+        const frameIndex = i * (SKIP_FRAMES + 1); // Account for skipped frames
+        const timeInSegment = (frameIndex / fps); // Convert frame to seconds
+        const absoluteTime = segmentStartTime + timeInSegment;
+        
+        if (absoluteTime >= effectiveDuration) break;
+        
+        const minutes = Math.floor(absoluteTime / 60);
+        const seconds = Math.floor(absoluteTime % 60);
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Vary engagement based on time and overall rate
+        const variation = Math.sin(absoluteTime * 0.1) * 0.3 + (Math.random() - 0.5) * 0.4;
+        const isEngaged = (engagementRate / 100 + variation) > 0.5;
+        
+        timestamps.push({
+          time: timeString,
+          dominantEmotion: isEngaged ? "Engaged" : "Not Engaged",
+          engagementLevel: isEngaged ? "High" : "Low"
+        });
+      }
     }
     
     return timestamps;
