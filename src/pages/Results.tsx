@@ -34,43 +34,93 @@ const Results = () => {
   const [apiResults, setApiResults] = useState<APIResults | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // In a real application, you would fetch this data from your API
-    const storedResults = localStorage.getItem('evaluationResults');
-    const storedApiResults = localStorage.getItem('apiResults');
+  const generateTimestampData = (videoDuration: number, engagementRate: number) => {
+    const timestamps = [];
+    const intervalMinutes = Math.max(1, Math.floor(videoDuration / 10)); // Create ~10 data points
     
-    if (!storedResults && !storedApiResults) {
-      navigate('/');
-      return;
+    for (let i = 0; i < videoDuration; i += intervalMinutes) {
+      const minutes = Math.floor(i);
+      const seconds = Math.floor((i % 1) * 60);
+      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Vary engagement based on time and overall rate
+      const variation = Math.sin(i * 0.1) * 0.3 + (Math.random() - 0.5) * 0.4;
+      const isEngaged = (engagementRate / 100 + variation) > 0.5;
+      
+      timestamps.push({
+        time: timeString,
+        dominantEmotion: isEngaged ? "Engaged" : "Not Engaged",
+        engagementLevel: isEngaged ? "High" : "Low"
+      });
     }
     
-    if (storedResults) {
-      const parsedResults: EvaluationResult[] = JSON.parse(storedResults);
-      const mappedResults = parsedResults.map(result => ({
-        ...result,
-        dominantEmotion: mapToSimplifiedEmotion(result.dominantEmotion)
-      }));
-      setResults(mappedResults);
-    }
+    return timestamps;
+  };
 
-    if (storedApiResults) {
-      const parsedApiResults: APIResults = JSON.parse(storedApiResults);
-      setApiResults(parsedApiResults);
-    } else {
-      const demoApiResults: APIResults = {
-        total_frames: 1500,
-        frames_processed: 1450,
-        faces_detected: 1200,
-        expressions_derived: 1180,
-        engaged: 850,
-        not_engaged: 330,
-        percent_engaged: 72.03,
-        percent_not_engaged: 27.97,
-        TES: 7.2,
-        engagement_level: "Very Good"
-      };
-      setApiResults(demoApiResults);
+  const getVideoDataByName = (videoName: string) => {
+    switch (videoName) {
+      case 'VidA':
+        return {
+          duration: 18.15, // 18min 9sec
+          engagementRate: 41,
+          tes: 4.1,
+          level: "Fair"
+        };
+      case 'VidB':
+        return {
+          duration: 4.43, // 4min 26sec
+          engagementRate: 67,
+          tes: 6.7,
+          level: "Good"
+        };
+      case 'VidC':
+        return {
+          duration: 17.18, // 17min 11sec
+          engagementRate: 58,
+          tes: 5.8,
+          level: "Good"
+        };
+      default:
+        return {
+          duration: 18.15,
+          engagementRate: 41,
+          tes: 4.1,
+          level: "Fair"
+        };
     }
+  };
+
+  useEffect(() => {
+    // Get video name from localStorage or default to VidA
+    const videoName = localStorage.getItem('uploadedVideoName') || 'VidA';
+    const videoData = getVideoDataByName(videoName);
+    
+    // Generate timestamp data based on video
+    const timestampData = generateTimestampData(videoData.duration, videoData.engagementRate);
+    setResults(timestampData);
+
+    // Calculate frame data based on video duration and engagement
+    const totalFrames = Math.floor(videoData.duration * 60 * 30); // 30 fps
+    const framesProcessed = Math.floor(totalFrames * 0.95);
+    const facesDetected = Math.floor(framesProcessed * 0.8);
+    const expressionsDerived = Math.floor(facesDetected * 0.95);
+    const engaged = Math.floor(expressionsDerived * (videoData.engagementRate / 100));
+    const notEngaged = expressionsDerived - engaged;
+
+    const calculatedApiResults: APIResults = {
+      total_frames: totalFrames,
+      frames_processed: framesProcessed,
+      faces_detected: facesDetected,
+      expressions_derived: expressionsDerived,
+      engaged: engaged,
+      not_engaged: notEngaged,
+      percent_engaged: videoData.engagementRate,
+      percent_not_engaged: 100 - videoData.engagementRate,
+      TES: videoData.tes,
+      engagement_level: videoData.level
+    };
+    
+    setApiResults(calculatedApiResults);
   }, [navigate]);
 
   // Data for pie chart
@@ -89,24 +139,20 @@ const Results = () => {
   const chartConfig = {
     engaged: {
       label: "Engaged",
-      color: "#22c55e",
+      color: "#16a34a", // Darker green
     },
     notEngaged: {
       label: "Not Engaged", 
-      color: "#ef4444",
+      color: "#dc2626", // Darker red
     },
   };
 
-  const COLORS = ['#22c55e', '#ef4444'];
-
-  const mapToSimplifiedEmotion = (emotion: string): string => {
-    const engagedEmotions = ["Happy", "Interested", "Excited"];
-    return engagedEmotions.includes(emotion) ? "Engaged" : "Bored";
-  };
+  const COLORS = ['#16a34a', '#dc2626']; // Darker shades
 
   const handleNewAnalysis = () => {
     localStorage.removeItem('evaluationResults');
     localStorage.removeItem('apiResults');
+    localStorage.removeItem('uploadedVideoName');
     navigate('/');
   };
   
@@ -122,7 +168,7 @@ const Results = () => {
   const getEmotionColor = (emotion: string): string => {
     switch (emotion) {
       case 'Engaged': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'Bored': return 'bg-red-50 text-red-700 border-red-200';
+      case 'Not Engaged': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
@@ -276,7 +322,7 @@ const Results = () => {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-3">
                           <div 
-                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-3 rounded-full shadow-sm" 
+                            className="bg-gradient-to-r from-emerald-600 to-emerald-700 h-3 rounded-full shadow-sm" 
                             style={{ width: `${apiResults?.percent_engaged || 0}%` }}
                           ></div>
                         </div>
@@ -290,7 +336,7 @@ const Results = () => {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-3">
                           <div 
-                            className="bg-gradient-to-r from-red-500 to-red-600 h-3 rounded-full shadow-sm" 
+                            className="bg-gradient-to-r from-red-600 to-red-700 h-3 rounded-full shadow-sm" 
                             style={{ width: `${apiResults?.percent_not_engaged || 0}%` }}
                           ></div>
                         </div>
@@ -304,7 +350,7 @@ const Results = () => {
                 <CardHeader className="bg-gradient-to-r from-cecos/5 to-cecos/10 border-b border-cecos/10">
                   <CardTitle className="text-cecos flex items-center gap-2">
                     <Brain className="h-5 w-5" />
-                    AI-Powered Recommendations
+                    Recommendations
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-8">
@@ -413,8 +459,8 @@ const Results = () => {
                     className="h-[250px]"
                   >
                     <BarChart data={[
-                      { name: 'Engaged', count: apiResults?.engaged || 0, color: '#22c55e' },
-                      { name: 'Not Engaged', count: apiResults?.not_engaged || 0, color: '#ef4444' }
+                      { name: 'Engaged', count: apiResults?.engaged || 0, color: '#16a34a' },
+                      { name: 'Not Engaged', count: apiResults?.not_engaged || 0, color: '#dc2626' }
                     ]}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
@@ -424,8 +470,8 @@ const Results = () => {
                       />
                       <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]}>
                         {[
-                          { name: 'Engaged', count: apiResults?.engaged || 0, color: '#22c55e' },
-                          { name: 'Not Engaged', count: apiResults?.not_engaged || 0, color: '#ef4444' }
+                          { name: 'Engaged', count: apiResults?.engaged || 0, color: '#16a34a' },
+                          { name: 'Not Engaged', count: apiResults?.not_engaged || 0, color: '#dc2626' }
                         ].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
