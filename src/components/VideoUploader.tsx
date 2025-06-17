@@ -203,9 +203,6 @@ const VideoUploader: React.FC = () => {
                   <p className="font-semibold">{file.name}</p>
                   <p className="text-sm text-gray-500">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                   <p className="text-xs text-green-600">✓ Valid video file</p>
-                  {['VidA', 'VidB', 'VidC'].includes(extractVideoName(file.name)) && (
-                    <p className="text-xs text-blue-600">✓ Recognized as {extractVideoName(file.name)}</p>
-                  )}
                 </div>
               ) : (
                 <div className="space-y-2">
