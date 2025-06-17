@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -80,11 +81,24 @@ const Results = () => {
           level: "Good"
         };
       default:
+        // For other videos, generate varied results
+        const hash = videoName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const baseEngagement = 45 + (hash % 35); // Range: 45-80%
+        const baseTes = Math.round((baseEngagement / 10) * 10) / 10; // Convert to TES scale
+        const baseDuration = 40 + (hash % 30); // Range: 40-70 seconds
+        
+        let level = "Fair";
+        if (baseEngagement >= 80) level = "Extraordinary";
+        else if (baseEngagement >= 70) level = "Very Good";
+        else if (baseEngagement >= 60) level = "Good";
+        else if (baseEngagement >= 50) level = "Fair";
+        else level = "Not Satisfactory";
+        
         return {
-          duration: 45,
-          engagementRate: 41,
-          tes: 4.1,
-          level: "Fair"
+          duration: baseDuration,
+          engagementRate: baseEngagement,
+          tes: baseTes,
+          level: level
         };
     }
   };
