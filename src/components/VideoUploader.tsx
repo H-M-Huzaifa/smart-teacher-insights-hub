@@ -11,8 +11,22 @@ const VideoUploader: React.FC = () => {
   const navigate = useNavigate();
 
   const extractVideoName = (fileName: string): string => {
-    // Remove file extension and return the name as is
-    return fileName.replace(/\.[^/.]+$/, '');
+    // Remove file extension
+    const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, '');
+    
+    // Check for VidA, VidB, VidC (case insensitive)
+    const lowerName = nameWithoutExtension.toLowerCase();
+    
+    if (lowerName.includes('vida')) {
+      return 'VidA';
+    } else if (lowerName.includes('vidb')) {
+      return 'VidB';
+    } else if (lowerName.includes('vidc')) {
+      return 'VidC';
+    }
+    
+    // Return original name if not a special video
+    return nameWithoutExtension;
   };
 
   const validateVideoFile = (file: File): boolean => {
